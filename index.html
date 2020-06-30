@@ -1,0 +1,47 @@
+<html>
+
+	<head>
+		<title>datapack generator</title>
+
+		<script type="text/javascript" src="jszip.js"></script>
+		<script type="text/javascript" src="filesaver.js"></script>
+		<script type="text/javascript" src="script.js"></script>
+
+		<style>
+			body {
+				font: 16px consolas;
+			}
+
+			.field {
+				width: 50px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<h1>datapack generator</h1>
+		<button onclick="generateFile()">generate datapack</button>
+
+		<br><br>
+
+		<label>Start From (x,y,z,rx,ry):</label>
+		<input type="number" class="field" value="0" id="startx" />
+		<input type="number" class="field" value="0" id="starty" />
+		<input type="number" class="field" value="0" id="startz" />
+		<input type="number" class="field" value="0" id="startrx" />
+		<input type="number" class="field" value="0" id="startry" />
+
+		<script>
+			document.getElementById("startx").addEventListener("input", updateStartCoords);
+			document.getElementById("starty").addEventListener("input", updateStartCoords);
+			document.getElementById("startz").addEventListener("input", updateStartCoords);
+			document.getElementById("startrx").addEventListener("input", updateStartCoords);
+			document.getElementById("startry").addEventListener("input", updateStartCoords);
+		</script>
+
+		<br><br>
+
+		<button onclick="newSection()" id="morebutton">do stuff</button>
+	</body>
+
+</html>
