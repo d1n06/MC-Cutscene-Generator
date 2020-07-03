@@ -199,14 +199,30 @@ let startCoords = [];
 function generateFile() {
 	if (current < 1) return;
 
-	generateSections();
+	//Hardcoding is fun
 
 	let zip = new JSZip();
-	zip.file("pack.mcmeta", "{\"pack\":{\"pack_format\":5,\"description\":\"test\"}}"); //Hardcoding stuff is fun
+
+	// mcmeta file
+	zip.file("pack.mcmeta", "{\"pack\":{\"pack_format\":5,\"description\":\"oh wow\"}}");
+
+	let data = zip.folder("data");
+
+	// tags for tick and load functions
+	let tagFolder = data.folder("minecraft").folder("tags").folder("functions");
+	tagFolder.file("tick.json", "{\"values\":[\"cutscene:tick\"]}");
+	tagFolder.file("load.json", "{\"values\":[\"cutscene:load\"]}")
+
+	// functions
+	let functionsFolder = data.folder("cutscene").folder("functions");
+
+	functionsFolder.file("tick.mcfunction", generateSections());
+	functionsFolder.file("start.mcfunction", `scoreboard players set @s cutscenetimer 0 \ntp @s ${startCoords[0]} ${startCoords[1]} ${startCoords[2]} ${startCoords[3]} ${startCoords[4]}`);
+	functionsFolder.file("load.mcfunction", `scoreboard objectives add cutscenetimer dummy`);
 
 	zip.generateAsync({type:"blob"})
 		.then(function(content) {
-			saveAs(content, "test.zip");
+			saveAs(content, "cutscene.zip");
 	});
 }
 
@@ -220,12 +236,15 @@ function section(dx, dy, dz, drx, dry, t) {
 	this.t = t;
 
 	this.generateCommand = function(start) {
-		return `execute as @a[scores={cutscenetimer=${start+1}..${start+t}}] at @p run tp @p ~${dx/t} ~${dy/t} ~${dz/t} ~${drx/t} ~${dry/t}`;
+		return `execute as @a[scores={cutscenetimer=${start+1}..${start+t}}] at @s run tp @s ~${dx/t} ~${dy/t} ~${dz/t} ~${drx/t} ~${dry/t}`;
 	}
 
 }
 
 function generateSections() {
+	let str = "scoreboard players add @a[scores={cutscenetimer=0..}] cutscenetimer 1\n";
+	let timer = 0;
+
 	for (let i = 0; i < current; i++) {
 		let dx = getFieldValue("relcoord-" + i + "-0");
 		let dy = getFieldValue("relcoord-" + i + "-1");
@@ -233,8 +252,14 @@ function generateSections() {
 		let drx = getFieldValue("relrot-" + i + "-0");
 		let dry = getFieldValue("relrot-" + i + "-1");
 
-		let t = getFieldValue("time-" + i);
+		let t = getFieldValue("time-" + i)*20;
 
 		sections.push(new section(dx, dy, dz, drx, dry, t));
+
+		str += sections[i].generateCommand(timer) + "\n";
+		timer += t;
 	}
+	str += `scoreboard players set @a[scores={cutscenetimer=${timer}..}] cutscenetimer -1`
+
+	return str;
 }
